@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"regexp"
 
 	"github.com/skynetservices/skydns/cache"
 	"github.com/skynetservices/skydns/metrics"
@@ -23,6 +24,7 @@ import (
 )
 
 const Version = "2.5.3a"
+const Domain_repe string = "[.]com$|[.]net$|[.]cn$|[.]org$"
 
 type server struct {
 	backend Backend
@@ -418,6 +420,7 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 }
 
 func (s *server) AddressRecords(q dns.Question, name string, previousRecords []dns.RR, bufsize uint16, dnssec, both bool) (records []dns.RR, err error) {
+	logf("AddressRecords_reg name is %s", name)
 	services, err := s.backend.Records(name, false)
 	if err != nil {
 		return nil, err
@@ -476,10 +479,22 @@ func (s *server) AddressRecords(q dns.Question, name string, previousRecords []d
 			records = append(records, serv.NewA(q.Name, ip.To4()))
 		case ip.To4() == nil && (q.Qtype == dns.TypeAAAA || both):
 			records = append(records, serv.NewAAAA(q.Name, ip.To16()))
+		case ip.To4() == nil && !(rege_domain(name)):
+			logf("rege_domain is %s", name)
+			ip := net.ParseIP("127.0.0.1")
+			logf("change_return_ip to 127.0.0.1 in server.go")
+			records = append(records, serv.NewA(q.Name, ip.To4()))
 		}
 	}
 	s.RoundRobin(records)
 	return records, nil
+}
+
+func rege_domain(domain_s string) bool {
+	if isOk, _ := regexp.MatchString(Domain_repe, domain_s); isOk{
+		return isOk
+	}
+	return false
 }
 
 // NSRecords returns NS records from etcd.
