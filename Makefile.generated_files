@@ -214,6 +214,7 @@ DEEPCOPY_FILES := $(addsuffix /$(DEEPCOPY_FILENAME), $(DEEPCOPY_DIRS))
 .PHONY: gen_deepcopy
 gen_deepcopy: $(DEEPCOPY_FILES)
 	if [[ -f $(META_DIR)/$(DEEPCOPY_GEN).todo ]]; then                  \
+        echo "from 217 lines"                                           \
 	    ./hack/run-in-gopath.sh $(DEEPCOPY_GEN)                         \
 	        --v $(KUBE_VERBOSE)                                         \
 	        -i $$(cat $(META_DIR)/$(DEEPCOPY_GEN).todo | paste -sd, -)  \
@@ -329,6 +330,7 @@ CONVERSION_FILES := $(addsuffix /$(CONVERSION_FILENAME), $(CONVERSION_DIRS))
 .PHONY: gen_conversion
 gen_conversion: $(CONVERSION_FILES)
 	if [[ -f $(META_DIR)/$(CONVERSION_GEN).todo ]]; then                  \
+        echo "from 333 lines"                                             \
 	    ./hack/run-in-gopath.sh $(CONVERSION_GEN)                         \
 	        --v $(KUBE_VERBOSE)                                           \
 	        -i $$(cat $(META_DIR)/$(CONVERSION_GEN).todo | paste -sd, -)  \

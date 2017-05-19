@@ -30,14 +30,14 @@ if [[ ! -d "${KUBE_ROOT}/examples" ]]; then
 	exit 1
 fi
 
-if ! which go-bindata &>/dev/null ; then
-	echo "Cannot find go-bindata. Install with"
-	echo "  go get -u github.com/jteeuwen/go-bindata/go-bindata"
-	exit 5
-fi
+#if ! which go-bindata &>/dev/null ; then
+#	echo "Cannot find go-bindata. Install with"
+#	echo "  go get -u github.com/jteeuwen/go-bindata/go-bindata"
+#	exit 5
+#fi
 
 BINDATA_OUTPUT="${KUBE_ROOT}/test/e2e/generated/bindata.go"
-go-bindata -nometadata -prefix "${KUBE_ROOT}" -o ${BINDATA_OUTPUT} -pkg generated \
+/ot/_output/local/go/bin/go-bindata -nometadata -prefix "${KUBE_ROOT}" -o ${BINDATA_OUTPUT} -pkg generated \
 	-ignore .jpg -ignore .png -ignore .md \
 	"${KUBE_ROOT}/examples/..." \
 	"${KUBE_ROOT}/docs/user-guide/..." \
