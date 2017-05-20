@@ -184,7 +184,6 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 
 	// Check cache first.
 	m1 := s.rcache.Hit(q, dnssec, tcp, m.Id)
-	logf("this is m1 ", m1)
 	if m1 != nil {
 		metrics.ReportRequestCount(req, metrics.Cache)
 
@@ -207,7 +206,6 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 		return
 	}
 
-	logf("1")
 	for zone, ns := range *s.config.stub {
 		if strings.HasSuffix(name, "." + zone) || name == zone {
 			logf("dnsquery forward from here")
@@ -229,7 +227,6 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 		name = s.config.Local
 	}
 
-	logf("2")
 	if q.Qtype == dns.TypePTR && strings.HasSuffix(name, ".in-addr.arpa.") || strings.HasSuffix(name, ".ip6.arpa.") {
 		metrics.ReportRequestCount(req, metrics.Reverse)
 
@@ -243,8 +240,6 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 		return
 	}
 
-	logf("3")
-	logf("after3 domain is %v", name)
 	if rege_domain(name) {
 		if q.Qclass != dns.ClassCHAOS && !strings.HasSuffix(name, "." + s.config.Domain) && name != s.config.Domain {
 			metrics.ReportRequestCount(req, metrics.Rec)
@@ -260,10 +255,7 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 		}
 	}
 
-	logf("4")
 	metrics.ReportCacheMiss(metrics.Response)
-
-	logf("5")
 
 	defer func() {
 		metrics.ReportDuration(m, start, metrics.Auth)
@@ -309,7 +301,6 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 		}
 	}()
 
-	logf("6")
 	if name == s.config.Domain {
 		if q.Qtype == dns.TypeSOA {
 			m.Answer = []dns.RR{s.NewSOA()}
@@ -322,7 +313,6 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 			}
 		}
 	}
-	logf("7")
 	if q.Qclass == dns.ClassCHAOS {
 		if q.Qtype == dns.TypeTXT {
 			switch name {
@@ -365,7 +355,6 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 	}
 
 //Doa:
-	logf("runtohere is nearly success...")
 	switch q.Qtype {
 	case dns.TypeNS:
 		if name != s.config.Domain {
@@ -441,16 +430,20 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 }
 
 func (s *server) AddressRecords(q dns.Question, name string, previousRecords []dns.RR, bufsize uint16, dnssec, both bool) (records []dns.RR, err error) {
-	logf("AddressRecords_reg name is %s , q is %s", name, q.Name)
-	services, err := s.backend.Records(name, false)
-	logf("services", services)
-	if err != nil {
-		logf("here is sth wrong.", err)
-		return nil, err
-	}
-
+	//services, err := s.backend.Records(name, false)
+	//logf("services long", len(services))
+	//if err != nil {
+	//	if !rege_domain(name){
+	//		g.Host = "127.0.0.1"
+	//		services := [] msg.Service {g}
+	//	}else{
+	//		return nil, err
+	//	}
+	//}
+	var g msg.Service
+	g.Host = "127.0.0.1"
+	services := [] msg.Service {g}
 	services = msg.Group(services)
-
 	for _, serv := range services {
 		ip := net.ParseIP(serv.Host)
 		logf("hereinAddressRecords ipis", ip.To4())
@@ -510,6 +503,7 @@ func (s *server) AddressRecords(q dns.Question, name string, previousRecords []d
 			records = append(records, serv.NewA(q.Name, ip.To4()))
 		}
 	}
+//Doa:
 	s.RoundRobin(records)
 	return records, nil
 }
