@@ -146,12 +146,7 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 	q := req.Question[0]
 	name := strings.ToLower(q.Name)
 
-	logf("Qtype print %s", name)
-
-	logf("charge rege_domain, ", q.Name, q.Qtype)
-
 	if q.Qtype == dns.TypeANY {
-		logf("charge TypeANY, ", q.Name, q.Qtype)
 		m.Authoritative = false
 		m.Rcode = dns.RcodeRefused
 		m.RecursionAvailable = false
@@ -208,7 +203,6 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 
 	for zone, ns := range *s.config.stub {
 		if strings.HasSuffix(name, "." + zone) || name == zone {
-			logf("dnsquery forward from here")
 			metrics.ReportRequestCount(req, metrics.Stub)
 
 			resp := s.ServeDNSStubForward(w, req, ns)
@@ -369,7 +363,6 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 		m.Answer = append(m.Answer, records...)
 		m.Extra = append(m.Extra, extra...)
 	case dns.TypeA, dns.TypeAAAA:
-		logf("charge rege_domain, %s, %s", q.Name, q.Qtype)
 		records, err := s.AddressRecords(q, name, nil, bufsize, dnssec, false)
 		if isEtcdNameError(err, s) {
 			m = s.NameError(req)
@@ -446,7 +439,6 @@ func (s *server) AddressRecords(q dns.Question, name string, previousRecords []d
 	services = msg.Group(services)
 	for _, serv := range services {
 		ip := net.ParseIP(serv.Host)
-		logf("hereinAddressRecords ipis", ip.To4())
 		switch {
 		case ip == nil:
 			// Try to resolve as CNAME if it's not an IP, but only if we don't create loops.
